@@ -4,6 +4,7 @@ package project1.lois.com.opencv_test;
  * Created by Lois on 2018/1/29.
  */
 
+import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +25,8 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
 import static org.opencv.imgproc.Imgproc.drawContours;
 import static org.opencv.imgproc.Imgproc.ellipse;
 import static org.opencv.imgproc.Imgproc.rectangle;
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private JavaCameraView cameraView;
 
     static {
+
         if (!OpenCVLoader.initDebug()) {
             Log.wtf(TAG, "static initializer: OpenCV failed to load!");
         }
@@ -87,11 +91,25 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     }
 
+    int count = 0;
+    private Mat previousFrame;
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-//        findCircles(inputFrame.gray());
-        findEllipses(inputFrame.gray());
-        return inputFrame.rgba();
+
+        findCircles(inputFrame.gray());
+        if( count == 0 ){
+            count = 60;
+            findEllipses(inputFrame.gray());
+            previousFrame = inputFrame.rgba();
+        }
+        count--;
+        return previousFrame;
+        //return inputFrame.rgba();
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 
     private void findEllipses(Mat input) {
@@ -99,12 +117,17 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         // Pre-processing
         Mat image = new Mat();
-        Imgproc.blur(input, image, new Size(5,5 ), new Point(-1, -1));
+        Imgproc.blur(input, image, new Size(5,5 ));
         Imgproc.Canny(image, image, 100, 280);
         Imgproc.findContours(image, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
+        for( int i = 0; i < contours.size(); i++){
+           Imgproc.drawContours(input,contours, i, new Scalar(255, 255, 255), 2);
+
+        }
         // Find rotated rectangles
         List<RotatedRect> rects = new ArrayList<>();
+
         for (int i = 0; i < contours.size(); i++) {
             Point[] array = contours.get(i).toArray();
 
@@ -121,12 +144,18 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Log.i(TAG, "Ellipse count " + rects.size());
 
         for (RotatedRect rect: rects) {
-            Imgproc.ellipse(input, rect, new Scalar(255, 255, 255), 2);
+            Point[] pts = new Point[4];
+            rect.points(pts);
+          //  Imgproc.rectangle(input, pts[0], pts[2], new Scalar(255, 0, 0, 0), 2);
+          //  Imgproc.ellipse(input, rect, new Scalar(255, 255, 255), 2);
+
         }
+
+
     }
 
     private boolean checkEllipse(Point[] array, RotatedRect rect){
-        double k = 0.00001;
+        double k = 10.0;
         double threshold = k;
         return calculateError(array, rect) < threshold;
     }
@@ -136,7 +165,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         for (Point point: array) {
             double f = (Math.pow(point.x - rect.center.x, 2) / Math.pow(rect.size.width / 2, 2)) +
                     (Math.pow(point.y - rect.center.y, 2) / Math.pow(rect.size.height / 2, 2));
-            err = Math.pow(Math.abs(1.0 - f), 2);
+            Log.i(TAG, "calculateError: " + f);
+            err = Math.pow(Math.abs(1.0 - f)  * 10, 2);
         }
         err = err / array.length;
         return err;
