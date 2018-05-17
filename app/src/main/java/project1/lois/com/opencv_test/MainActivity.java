@@ -12,6 +12,7 @@ import android.util.Log;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
+import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -25,54 +26,61 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-import static org.opencv.imgproc.Imgproc.drawContours;
-import static org.opencv.imgproc.Imgproc.ellipse;
-import static org.opencv.imgproc.Imgproc.rectangle;
-
-
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     public static final String TAG = "MainActivity";
 
     private JavaCameraView cameraView;
+    private ClassifyCoins coins;
 
-    static {
+//    static {
+//
+//        if (!OpenCVLoader.initDebug()) {
+//            Log.wtf(TAG, "static initializer: OpenCV failed to load!");
+//
+//        }
+//    }
 
-        if (!OpenCVLoader.initDebug()) {
-            Log.wtf(TAG, "static initializer: OpenCV failed to load!");
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i("OpenCV", "OpenCV loaded successfully");
+                    cameraView.enableView();
+                    cameraView.enableFpsMeter();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
         }
-    }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        cameraView = findViewById(R.id.camera_view);
-        cameraView.setCvCameraViewListener(this);
+//        cameraView = findViewById(R.id.camera_view);
+//        cameraView.setCvCameraViewListener(this);
+        ClassifyCoins coins = new ClassifyCoins();
+        coins.readPicture(this);
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         super.onResume();
-        BaseLoaderCallback callback = new BaseLoaderCallback(this) {
-            @Override
-            public void onManagerConnected(int status) {
-                switch (status) {
-                    case SUCCESS:
-                        Log.i(TAG, "onManagerConnected: OpenCV loaded successfully");
-                        cameraView.enableView();
-                        cameraView.enableFpsMeter();
-                        break;
-                    default:
-                        super.onManagerConnected(status);
-                        Log.e(TAG, "onManagerConnected: OpenCV load failed");
-                }
-            }
-        };
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, callback);
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+        } else {
+            Log.d("OpenCV", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
     @Override
@@ -105,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 //        count--;
 //        return previousFrame;
         findEllipses(inputFrame.gray());
-        return inputFrame.rgba();
+        return inputFrame.gray();
     }
 
     @Override
@@ -120,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Mat image = new Mat();
         Imgproc.blur(input, image, new Size(5,5 ));
         Imgproc.Canny(image, image, 100, 280);
+        Imgproc.threshold(image,image, 0, 255,0);
         Imgproc.findContours(image, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
         for( int i = 0; i < contours.size(); i++){
