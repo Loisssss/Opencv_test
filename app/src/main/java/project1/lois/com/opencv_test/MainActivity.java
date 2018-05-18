@@ -4,10 +4,12 @@ package project1.lois.com.opencv_test;
  * Created by Lois on 2018/1/29.
  */
 
+import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -50,6 +52,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     cameraView.enableView();
                     cameraView.enableFpsMeter();
+                    coins = new ClassifyCoins();
+                    Bitmap bitmap = coins.readPicture(this.mAppContext) ;
+                    ImageView iv = (ImageView) findViewById(R.id.image_view);
+                    iv.setImageBitmap(bitmap);
                 } break;
                 default:
                 {
@@ -64,10 +70,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        cameraView = findViewById(R.id.camera_view);
-//        cameraView.setCvCameraViewListener(this);
-        ClassifyCoins coins = new ClassifyCoins();
-        coins.readPicture(this);
+        cameraView = findViewById(R.id.camera_view);
+        cameraView.setCvCameraViewListener(this);
+//        ClassifyCoins coins = new ClassifyCoins();
+//        coins.readPicture(this);
     }
 
     @Override
@@ -128,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Mat image = new Mat();
         Imgproc.blur(input, image, new Size(5,5 ));
         Imgproc.Canny(image, image, 100, 280);
-        Imgproc.threshold(image,image, 0, 255,0);
+       // Imgproc.threshold(image,image, 0, 255,0);
         Imgproc.findContours(image, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
         for( int i = 0; i < contours.size(); i++){

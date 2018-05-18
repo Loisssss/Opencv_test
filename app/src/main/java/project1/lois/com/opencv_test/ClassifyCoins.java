@@ -23,42 +23,27 @@ import android.app.Activity;
 
 
 import java.io.File;
-public class ClassifyCoins extends Activity {
-
-    public static void main(String[] arg) throws IOException {
-
-//        List<Mat> images = new ArrayList();
-//        File folder = new File("D://Download//euro2_test");
-//        File[] listOfFiles = folder.listFiles();
-//
-//        for (File file : listOfFiles) {
-//            if (file.isFile()) {
-//                String fileName = file.getName();
-//                Mat image = imread("D://Download//euro2_test//" + fileName);
-//                System.out.println(fileName);
-//                Imgcodecs.imwrite("D://Download//euro2_test//" + fileName, image);
-//                images.add(image);
-//
-//            }
-//        }
+public class ClassifyCoins {
 
 
-    }
-
-    public void readPicture(Context context) {
+    public Bitmap readPicture(Context context) {
+        Bitmap bitmap = null;
         try {
+
             //read image
             Mat m = Utils.loadResource(context, R.drawable.euro2, Imgcodecs.CV_LOAD_IMAGE_COLOR);
           //  Imgproc.cvtColor(m, m, Imgproc.COLOR_RGB2BGRA);
 
             // show image
-            Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
-            Utils.matToBitmap(m, bm);
-            ImageView iv = (ImageView) findViewById(R.id.image_view);
-            iv.setImageBitmap(bm);
+            bitmap = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(m, bitmap);
+//            ImageView iv = (ImageView) findViewById(R.id.image_view);
+//            iv.setImageBitmap(bitmap);
         } catch (IOException ie) {
             ie.printStackTrace();
         }
+        return bitmap;
+
     }
 
 }
