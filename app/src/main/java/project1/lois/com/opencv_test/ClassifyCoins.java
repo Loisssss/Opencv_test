@@ -3,26 +3,11 @@ package project1.lois.com.opencv_test;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.util.Log;
-import android.widget.ImageView;
-
 import org.opencv.android.Utils;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import static org.opencv.imgcodecs.Imgcodecs.imread;
-import static project1.lois.com.opencv_test.MainActivity.TAG;
 
-import android.app.Activity;
-
-
-import java.io.File;
 public class ClassifyCoins {
 
 
